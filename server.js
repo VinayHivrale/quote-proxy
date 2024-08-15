@@ -4,22 +4,34 @@ const axios = require('axios');
 const app = express();
 const port = 3000;
 
+// Chrome extension ID for allowed origin
+const allowedExtensionOrigin = 'chrome-extension://ghppifoijpmjlogocmefjfaagilfjjbn';
 
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (origin === allowedExtensionOrigin || !origin) {
+      // Allow requests from the specified extension and allow non-browser requests (e.g., from localhost for testing)
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET'], // Allow only GET requests
+  allowedHeaders: 'authorization,Content-Type,origin, x-requested-with',
+  credentials: true
+};
 
+app.use(cors(corsOptions));
 
 app.get('/', async (req, res) => {
   try {
-    // Your asynchronous operations (if any) go here
-
     res.json({ msg: "hello" });
   } catch (error) {
-    // Handle any errors that occurred during the async operations
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 
 app.get('/api/quote', async (req, res) => {
   try {
@@ -30,7 +42,6 @@ app.get('/api/quote', async (req, res) => {
     res.status(500).send('Failed to fetch quote.');
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Proxy server running at http://localhost:${port}`);

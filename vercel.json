@@ -7,7 +7,7 @@
     ],
     "routes": [
     {
-    "src": "/api/quote",
+    "src": "/",
     "dest": "server.js"
     }
     ]

@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const axios = require('axios');
 const app = express();
 const port = 3000;
@@ -7,22 +6,28 @@ const port = 3000;
 // Chrome extension ID for allowed origin
 const allowedExtensionOrigin = 'chrome-extension://ghppifoijpmjlogocmefjfaagilfjjbn';
 
-// CORS configuration
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (origin === allowedExtensionOrigin || !origin) {
-      // Allow requests from the specified extension and allow non-browser requests (e.g., from localhost for testing)
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET'], // Allow only GET requests
-  allowedHeaders: 'authorization,Content-Type,origin, x-requested-with',
-  credentials: true
-};
+app.use((req, res, next) => {
+  const origin = req.get('Origin');
 
-app.use(cors(corsOptions));
+  // Check if the origin is the allowed extension or not
+  if (origin === allowedExtensionOrigin || !origin) {
+    res.setHeader('Access-Control-Allow-Origin', allowedExtensionOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Headers', 'authorization,Content-Type,origin,x-requested-with');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response
+
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204); // No Content
+    }
+  } else {
+    // If the origin is not allowed, send a CORS error response
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  next();
+});
 
 app.get('/', async (req, res) => {
   try {

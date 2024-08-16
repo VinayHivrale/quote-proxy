@@ -40,7 +40,7 @@ app.get('/', async (req, res) => {
 
 app.get('/api/quote', async (req, res) => {
   try {
-    const response = await axios.get('https://zenquotes.io/api/today');
+    const response = await axios.get('https://zenquotes.io/api/random');
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching the quote:', error);

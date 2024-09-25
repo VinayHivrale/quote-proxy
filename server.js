@@ -3,32 +3,23 @@ const axios = require('axios');
 const app = express();
 const port = 3000;
 
-// Chrome extension ID for allowed origin
-const allowedExtensionOrigin = 'chrome-extension://ghppifoijpmjlogocmefjfaagilfjjbn';
-
+// Middleware to allow all origins
 app.use((req, res, next) => {
-  const origin = req.get('Origin');
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'authorization,Content-Type,origin,x-requested-with');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response for 1 day
 
-  // Check if the origin is the allowed extension or not
-  if (origin === allowedExtensionOrigin || !origin) {
-    res.setHeader('Access-Control-Allow-Origin', allowedExtensionOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'authorization,Content-Type,origin,x-requested-with');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight response
-
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(204); // No Content
-    }
-  } else {
-    // If the origin is not allowed, send a CORS error response
-    return res.status(403).json({ error: 'Forbidden' });
+  // Handle preflight (OPTIONS) requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204); // No Content
   }
 
   next();
 });
 
+// Sample route
 app.get('/', async (req, res) => {
   try {
     res.json({ msg: "hello" });
@@ -38,6 +29,7 @@ app.get('/', async (req, res) => {
   }
 });
 
+// API to fetch a quote from external API
 app.get('/api/quote', async (req, res) => {
   try {
     const response = await axios.get('https://zenquotes.io/api/random');
@@ -48,6 +40,7 @@ app.get('/api/quote', async (req, res) => {
   }
 });
 
+// Start the server
 app.listen(port, () => {
   console.log(`Proxy server running at http://localhost:${port}`);
 });
